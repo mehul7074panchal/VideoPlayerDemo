@@ -10,8 +10,17 @@ import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.ExoPlayerFactory
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
+import com.google.android.exoplayer2.extractor.ExtractorsFactory
+import com.google.android.exoplayer2.source.ExtractorMediaSource
+import com.google.android.exoplayer2.source.MediaSource
+import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.ui.PlayerView
+import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.util.Util
+
 
 class MediaPlayer (private var context: Context,
                    private val playerView: PlayerView
@@ -84,6 +93,29 @@ class MediaPlayer (private var context: Context,
             playbackPosition = player?.currentPosition ?: 0L
             currentWindowIndex = player?.currentWindowIndex ?: 0
             playWhenReady = player?.playWhenReady ?: true
+        }
+    }
+
+
+    fun preparePlayer(url: String, lastEventTime: Long) {
+        val dataSourceFactory: DataSource.Factory =
+            DefaultDataSourceFactory(context, Util.getUserAgent(context, context.resources.getString(R.string.app_name)))
+        val extractorsFactory: ExtractorsFactory = DefaultExtractorsFactory()
+        val mediaSource: MediaSource
+        mediaSource =
+            ExtractorMediaSource(
+                Uri.parse(url),
+                dataSourceFactory,
+                extractorsFactory,
+                null,
+                null
+            )
+
+
+        // Prepare the player with the source.
+        player?.prepare(mediaSource)
+        if (lastEventTime > 0) {
+            player?.seekTo(lastEventTime * 1000)
         }
     }
 

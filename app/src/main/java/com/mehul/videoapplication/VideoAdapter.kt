@@ -1,6 +1,8 @@
 package com.mehul.videoapplication
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,9 +14,13 @@ import com.amulyakhare.textdrawable.util.ColorGenerator
 import java.util.*
 
 class VideoAdapter(
-    private val mValues: List<Video>
+    private val mValues: List<Video>,
+    private val mediaPlayer: MediaPlayer,
+    private val ctx: Context
 ) : RecyclerView.Adapter<VideoAdapter.ViewHolder>() {
     private val arraylist: ArrayList<Video> = ArrayList()
+    var selectedPosition = 0
+
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -47,13 +53,25 @@ class VideoAdapter(
             holder.ivP.setImageDrawable(drawable)
 
         }
+        if(selectedPosition==position)
+            holder.itemView.setBackgroundColor(Color.parseColor("#000000"));
+        else
+            holder.itemView.setBackgroundColor(Color.parseColor("#ffffff"));
+        holder.mView.setOnClickListener {
+            if (holder.mItem != null)
+
+            mediaPlayer.preparePlayer(holder.mItem!!.url, 0)
+
+            selectedPosition = position
+            notifyDataSetChanged()
+        }
     }
 
     override fun getItemCount(): Int {
         return mValues.size
     }
 
-    inner class ViewHolder( val mView: View) : RecyclerView.ViewHolder(mView) {
+    inner class ViewHolder(val mView: View) : RecyclerView.ViewHolder(mView) {
         val tvP_Name: TextView = mView.findViewById(R.id.tvName)
         var mItem: Video? = null
         val ivP: ImageView = mView.findViewById(R.id.ivProfile)
@@ -61,9 +79,7 @@ class VideoAdapter(
             return ""
         }
 
-        init {
-            mView.setOnClickListener { }
-        }
+
     }
 
     init {
