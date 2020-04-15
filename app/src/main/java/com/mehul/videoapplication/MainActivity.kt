@@ -177,7 +177,7 @@ class MainActivity : AppCompatActivity() {
             exo_fullscreen_icon.setImageDrawable(
                 ContextCompat.getDrawable(
                     this@MainActivity,
-                    R.drawable.ic_fullscreen_expand
+                    R.drawable.baseline_fullscreen_white_36
                 )
             )
             window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
@@ -200,7 +200,7 @@ class MainActivity : AppCompatActivity() {
             exo_fullscreen_icon.setImageDrawable(
                 ContextCompat.getDrawable(
                     this@MainActivity,
-                    R.drawable.ic_fullscreen_skrink
+                    R.drawable.baseline_fullscreen_exit_white_36
                 )
             )
             window.decorView.systemUiVisibility = (SYSTEM_UI_FLAG_FULLSCREEN
