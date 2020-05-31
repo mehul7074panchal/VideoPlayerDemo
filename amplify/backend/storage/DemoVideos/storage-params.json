@@ -1,0 +1,7 @@
+{
+    "groupPermissionMap": {
+        "Client": [
+            "read"
+        ]
+    }
+}
