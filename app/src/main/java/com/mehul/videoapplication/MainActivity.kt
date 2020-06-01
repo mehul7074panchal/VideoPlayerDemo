@@ -2,13 +2,11 @@ package com.mehul.videoapplication
 
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.view.View
 import android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
 import android.view.ViewGroup
@@ -16,96 +14,34 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.amazonaws.auth.CognitoCachingCredentialsProvider
-import com.amazonaws.mobile.client.AWSMobileClient
-import com.amazonaws.mobileconnectors.s3.transferutility.*
-import com.amazonaws.regions.Region
-import com.amazonaws.regions.Regions
-import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.services.s3.internal.Constants
-import com.amazonaws.services.s3.model.ListObjectsRequest
-import com.amazonaws.services.s3.model.ObjectListing
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.exo_playback_control_view.*
-import java.io.File
-import java.lang.Thread.sleep
-import java.util.*
-import kotlin.collections.ArrayList
 
 
 class MainActivity : AppCompatActivity() {
     var adapter: VideoAdapter? = null
-    var url = ""
+
     private enum class PlayMode { SINGLE_VIDEO, PLAY_LIST }
 
     var fullscreen: Boolean = false
     lateinit var mediaPlayer: MediaPlayer
     private var IsAuto: Boolean = false
-    var TAG = "S3"
+
 
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         //  player_view.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-        applicationContext.startService(
-            Intent(
-                applicationContext,
-                TransferService::class.java
-            )
-        )
-
-        var r = Runnable {
-
-
-            val credentialsProvider =
-                CognitoCachingCredentialsProvider(
-                    applicationContext,
-                    "ap-south-1:846c13bc-fc00-4027-a9c1-27c2257bc433",  // Identity pool ID
-                    Regions.AP_SOUTH_1 // Region
-                )
-
-           // credentialsProvider.
-            var au = AWSMobileClient.getInstance().identityId
-            val s3 = AmazonS3Client(AWSMobileClient.getInstance().awsCredentials, Region.getRegion("ap-south-1"))
-            val objectListing: ObjectListing = s3.listObjects(
-                ListObjectsRequest("video-app154857-dev", "", null, null, null)
-                    .withEncodingType(Constants.URL_ENCODING)
-            )
-            //      url =  s3.getResourceUrl("video-app154857-dev","BigBuckBunny.mp4")
-            var dt = Date()
-            val c = Calendar.getInstance()
-            c.time = dt
-            c.add(Calendar.DATE, 1)
-            dt = c.time
-            var urlS = s3.getSignerByURI(s3.getUrl("video-app154857-dev","BigBuckBunny.mp4").toURI())
-            var uu = s3.getUrl("video-app154857-dev","BigBuckBunny.mp4").toURI()
-        //    var uhk = AmazonS3Client(AWSMobileClient.getInstance().awsCredentials, Region.getRegion("ap-south-1")).getSignerByURI()
-
-            var u =  s3.getUrl("video-app154857-dev","BigBuckBunny.mp4")//,dt)
-            var u2 =  s3.getUrl("video-app154857-dev","BigBuckBunny.mp4").authority//,dt)
-            var u3 =  s3.getUrl("video-app154857-dev","BigBuckBunny.mp4").userInfo//,dt)
-            url=  urlS.toString()  //u.toString()
-
-
-            var obj =s3.getObject("video-app154857-dev","BigBuckBunny.mp4")
-            var lst = objectListing.bucketName
-        }
-
-        Thread(r).start()
-
 
         exo_fullscreen_icon.setOnClickListener {
             IsAuto = false
             toggleScreen(fullscreen, false)
 
         }
-
-        sleep(2000)
         startDemoOfAndroidPlayer()
         IsAuto = true
         toggleScreen(fullscreen, IsAuto)
-
 
 
     }
@@ -147,13 +83,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun startDemoOfAndroidPlayer() {
 
-
         var lstVideo: MutableList<Video> = ArrayList()
 
         lstVideo.add(
             Video(
                 "Big Buck Bunny",
-                url
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
             )
         )
         lstVideo.add(
@@ -205,7 +140,8 @@ class MainActivity : AppCompatActivity() {
             )
         )
 
-        val videoUrl = url
+        val videoUrl =
+            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
         val uri = Uri.parse(videoUrl)
         val lstUrl: MutableList<Uri> = ArrayList()
         lstVideo.forEach {
@@ -294,53 +230,5 @@ class MainActivity : AppCompatActivity() {
         fullscreen = !flg
     }
 
-    private fun downloadWithTransferUtility() {
-        val transferUtility: TransferUtility = TransferUtility.builder()
-            .context(applicationContext)
-            .awsConfiguration(AWSMobileClient.getInstance().configuration)
-            .s3Client(AmazonS3Client(AWSMobileClient.getInstance()))
-            .build()
-        val downloadObserver: TransferObserver = transferUtility.download(
-            "BigBuckBunny.mp4",
-            File(applicationContext.filesDir, "download.mp4")
-        )
 
-        // Attach a listener to the observer to get state update and progress notifications
-        downloadObserver.setTransferListener(object : TransferListener {
-           override fun onStateChanged(id: Int, state: TransferState) {
-                if (TransferState.COMPLETED === state) {
-                    // Handle a completed upload.
-                }
-            }
-
-            override fun onProgressChanged(
-                id: Int,
-                bytesCurrent: Long,
-                bytesTotal: Long
-            ) {
-                val percentDonef =
-                    bytesCurrent.toFloat() / bytesTotal.toFloat() * 100
-                val percentDone = percentDonef.toInt()
-                Log.d(
-                    "Your Activity",
-                    "   ID:$id   bytesCurrent: $bytesCurrent   bytesTotal: $bytesTotal $percentDone%"
-                )
-            }
-
-           override fun onError(id: Int, ex: java.lang.Exception?) {
-                // Handle errors
-            }
-        })
-
-        // If you prefer to poll for the data, instead of attaching a
-        // listener, check for the state and progress in the observer.
-        if (TransferState.COMPLETED === downloadObserver.state) {
-            // Handle a completed upload.
-        }
-        Log.d(
-            "Your Activity",
-            "Bytes Transferred: " + downloadObserver.bytesTransferred
-        )
-        Log.d("Your Activity", "Bytes Total: " + downloadObserver.bytesTotal)
-    }
 }
